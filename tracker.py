@@ -34,32 +34,32 @@ def get_axis_aligned_bbox(region):
     return cx - w / 2, cy - h / 2, w, h
 
 
-def get_img_list(frames_dir):
-    frame_list = []
+# 返回排序后的所有帧的路径
+def getSortedFrames(frames_dir) -> list[str]:
+    frames = []
     for frame in sorted(os.listdir(frames_dir)):
         if os.path.splitext(frame)[1] == ".jpg":
-            frame_list.append(os.path.join(frames_dir, frame))
-    return frame_list
+            frames.append(os.path.join(frames_dir, frame))
+    frames.sort()
+    return frames
 
 
-# 读取物体框，每一帧为顺序为 x y w h
+# 读取物体框  每一帧为顺序为 x y w h
 def getGroundTruths(frames_dir: str) -> list[list[float]]:
-    gt_path = os.path.join(frames_dir, "groundtruth.txt")
-    gts: list[list[float]] = []
-    with open(gt_path) as f:
+    groundtruth_path = os.path.join(frames_dir, "groundtruth.txt")
+    groundtruths: list[list[float]] = []
+    with open(groundtruth_path) as f:
         for row in csv.reader(f):
-            gts.append([(float(i)) for i in row])
-    return gts
+            groundtruths.append([(float(i)) for i in row])
+    return groundtruths
 
 
 class PyTracker:
-    def __init__(self, frames_dir: str, tracker_type: str):
+    def __init__(self, frames_dir: str, tracker_type: str = "MOSSE"):
         self.frames_dir = frames_dir
         self.tracker_type = tracker_type
-        self.frame_list = get_img_list(frames_dir)
-        self.frame_list.sort()
-        self.gts = getGroundTruths(frames_dir=frames_dir)
-        self.init_gt = self.gts[0]
+        self.frames = getSortedFrames(frames_dir=frames_dir)
+        self.groundtruths = getGroundTruths(frames_dir=frames_dir)
 
         if self.tracker_type == "MOSSE":
             self.tracker = MOSSE()
@@ -68,29 +68,24 @@ class PyTracker:
 
     def tracking(self, video_path: str = None, verbose: bool = True):
         poses = []
-        init_frame = cv2.imread(self.frame_list[0])
 
-        init_gt = np.array(self.init_gt)
-        if init_gt.shape[0] != 4:
-            init_gt = get_axis_aligned_bbox(init_gt)
-            print(init_gt)
-        x1, y1, w, h = init_gt
-        init_gt = tuple(init_gt)
-
-        self.tracker.init(init_frame, init_gt)
+        initial_frame = cv2.imread(self.frames[0])
+        initial_groundtruth = self.groundtruths[0]
+        x1, y1, w, h = initial_groundtruth
+        self.tracker.init(first_frame=initial_frame, bbox=initial_groundtruth)
 
         writer = None
         if verbose is True and video_path is not None:
             writer = cv2.VideoWriter(
                 video_path,
-                cv2.VideoWriter_fourcc("F", "L", "V", "1"),
+                cv2.VideoWriter_fourcc("H", "2", "6", "4"),
                 30,
-                (init_frame.shape[1], init_frame.shape[0]),
+                (initial_frame.shape[1], initial_frame.shape[0]),
             )
 
-        for idx in range(len(self.frame_list)):
+        for idx in range(len(self.frames)):
             if idx != 0:
-                current_frame = cv2.imread(self.frame_list[idx])
+                current_frame = cv2.imread(self.frames[idx])
                 height, width = current_frame.shape[:2]
                 bbox = self.tracker.update(current_frame, vis=verbose)
                 x1, y1, w, h = bbox
@@ -150,4 +145,4 @@ class PyTracker:
 
 if __name__ == "__main__":
     tracker = PyTracker(frames_dir="./input/bicycle/", tracker_type="MOSSE")
-    tracker.tracking(video_path="./output/bicycle.flv")
+    tracker.tracking(video_path="./output/bicycle.mp4")

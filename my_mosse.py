@@ -59,12 +59,14 @@ class MOSSE(BaseCF):
         self.interp_factor = interp_factor  # 学习率
         self.sigma = sigma  # 高斯变换中的方差
 
+    # first_frame: np.array
+    # bbox: x y w h
     def init(self, first_frame, bbox):
         if len(first_frame.shape) != 2:
             assert first_frame.shape[2] == 3
             first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)  # RGB图片转换成灰度图片
         first_frame = first_frame.astype(np.float32) / 255  # 归一化
-        x, y, w, h = tuple(bbox)  # 取出第一帧中ground truth的坐标值 x,y为框的左上角坐标，w, h为框的大小
+        x, y, w, h = bbox  # 取出第一帧中ground truth的坐标值 x,y为框的左上角坐标，w, h为框的大小
         self._center = (x + w / 2, y + h / 2)  # 计算ground truth的中心
         self.w, self.h = w, h  # 获取框的大小
         w, h = int(round(w)), int(round(h))  # round()四舍五入
