@@ -88,7 +88,7 @@ class MOSSE(BaseCF):
             self._Ai += self._G * np.conj(Fi)
             self._Bi += Fi * np.conj(Fi)
 
-    def update(self, current_frame, vis=False):
+    def update(self, current_frame, vis=False) -> list[int]:
         if len(current_frame.shape) != 2:
             assert current_frame.shape[2] == 3
             current_frame = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
