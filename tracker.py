@@ -45,12 +45,12 @@ def getSortedFrames(frames_dir) -> list[str]:
 
 
 # 读取物体框  每一帧为顺序为 x y w h
-def getGroundTruths(frames_dir: str) -> list[list[float]]:
+def getGroundTruths(frames_dir: str) -> list[list[int]]:
     groundtruth_path = os.path.join(frames_dir, "groundtruth.txt")
-    groundtruths: list[list[float]] = []
+    groundtruths: list[list[int]] = []
     with open(groundtruth_path) as f:
         for row in csv.reader(f):
-            groundtruths.append([(float(i)) for i in row])
+            groundtruths.append([(int(float(i))) for i in row])
     return groundtruths
 
 
@@ -66,12 +66,12 @@ class PyTracker:
         else:
             raise NotImplementedError
 
-    def tracking(self, video_path: str = None, verbose: bool = True):
-        poses = []
+    def tracking(self, video_path: str = None, verbose: bool = True) -> list[list[int]]:
 
         initial_frame = cv2.imread(self.frames[0])
         initial_groundtruth = self.groundtruths[0]
         x1, y1, w, h = initial_groundtruth
+        poses = [initial_groundtruth]
         self.tracker.init(first_frame=initial_frame, bbox=initial_groundtruth)
 
         writer = None
@@ -140,9 +140,10 @@ class PyTracker:
                     cv2.waitKey(1)
 
             poses.append(np.array([int(x1), int(y1), int(w), int(h)]))
-        return np.array(poses)
+        return poses
 
 
 if __name__ == "__main__":
     tracker = PyTracker(frames_dir="./input/bicycle/", tracker_type="MOSSE")
-    tracker.tracking(video_path="./output/bicycle.mp4")
+    poses = tracker.tracking(video_path="./output/bicycle.mp4")
+    print(f"[debug] {poses[2]}")
