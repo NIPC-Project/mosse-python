@@ -1,6 +1,9 @@
+import os
+import csv
+
 import cv2
 import numpy as np
-import os
+
 from my_mosse import MOSSE
 
 
@@ -31,42 +34,31 @@ def get_axis_aligned_bbox(region):
     return cx - w / 2, cy - h / 2, w, h
 
 
-def get_img_list(img_dir):
+def get_img_list(frames_dir):
     frame_list = []
-    for frame in sorted(os.listdir(img_dir)):
+    for frame in sorted(os.listdir(frames_dir)):
         if os.path.splitext(frame)[1] == ".jpg":
-            frame_list.append(os.path.join(img_dir, frame))
+            frame_list.append(os.path.join(frames_dir, frame))
     return frame_list
 
 
-def get_ground_truthes(img_path):
-    """
-    读取groundtruth,每行包含8个坐标点
-    """
-    gt_path = os.path.join(img_path, "groundtruth.txt")
-    gts = []
-    with open(gt_path, "r") as f:
-        while True:
-            line = f.readline()
-            if line == "":
-                gts = np.array(gts, dtype=np.float32)
-                return gts
-            if "," in line:
-                gt_pos = line.split(",")
-            else:
-                gt_pos = line.split()
-            gt_pos_int = [(float(element)) for element in gt_pos]
-            gts.append(gt_pos_int)
+# 读取物体框，每一帧为顺序为 x y w h
+def getGroundTruths(frames_dir: str) -> list[list[float]]:
+    gt_path = os.path.join(frames_dir, "groundtruth.txt")
+    gts: list[list[float]] = []
+    with open(gt_path) as f:
+        for row in csv.reader(f):
+            gts.append([(float(i)) for i in row])
     return gts
 
 
 class PyTracker:
-    def __init__(self, img_dir, tracker_type):
-        self.img_dir = img_dir
+    def __init__(self, frames_dir: str, tracker_type: str):
+        self.frames_dir = frames_dir
         self.tracker_type = tracker_type
-        self.frame_list = get_img_list(img_dir)
+        self.frame_list = get_img_list(frames_dir)
         self.frame_list.sort()
-        self.gts = get_ground_truthes(img_dir)
+        self.gts = getGroundTruths(frames_dir=frames_dir)
         self.init_gt = self.gts[0]
 
         if self.tracker_type == "MOSSE":
@@ -74,7 +66,7 @@ class PyTracker:
         else:
             raise NotImplementedError
 
-    def tracking(self, verbose=True, video_path=None):
+    def tracking(self, video_path: str = None, verbose: bool = True):
         poses = []
         init_frame = cv2.imread(self.frame_list[0])
 
@@ -156,10 +148,6 @@ class PyTracker:
         return np.array(poses)
 
 
-def main():
-    tracker = PyTracker("./bicycle", "MOSSE")
-    tracker.tracking(video_path="bicycle.flv")
-
-
 if __name__ == "__main__":
-    main()
+    tracker = PyTracker(frames_dir="./input/bicycle/", tracker_type="MOSSE")
+    tracker.tracking(video_path="./output/bicycle.flv")

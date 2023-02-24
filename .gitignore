@@ -1,2 +1,8 @@
-test_data/
+# Python
+__pycache__
+
+# data
 test_data.7z
+test_data/
+input/
+output/
