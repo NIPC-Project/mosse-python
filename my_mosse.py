@@ -91,10 +91,10 @@ class MOSSE(BaseCF):
         self.Ai = np.zeros_like(self._G)
         self.Bi = np.zeros_like(self._G)
         # 训练初始的核
-        for _ in range(1):
+        for _ in range(8):
             # 对fi进行多次刚性形变，增强检测的鲁棒性
-            # fi = self.randomWarp(fi_groundtruth)
-            fi = fi_groundtruth
+            fi = self.randomWarp(fi_groundtruth)
+            # fi = fi_groundtruth
             Fi = np.fft.fft2(self.preprocessing(fi, self.cos_window))
             self.Ai += self._G * np.conj(Fi)
             self.Bi += Fi * np.conj(Fi)

@@ -18,8 +18,8 @@ def getSortedFrames(frames_dir) -> list[str]:
 
 
 # 读取物体框  每一帧为顺序为 x y w h
-def getGroundTruths(frames_dir: str) -> list[list[int]]:
-    groundtruth_path = os.path.join(frames_dir, "groundtruth.txt")
+def getGroundTruths(annotations_dir: str) -> list[list[int]]:
+    groundtruth_path = os.path.join(annotations_dir, "groundtruth.txt")
     groundtruths: list[list[int]] = []
     with open(groundtruth_path) as f:
         for row in csv.reader(f):
@@ -28,11 +28,13 @@ def getGroundTruths(frames_dir: str) -> list[list[int]]:
 
 
 class PyTracker:
-    def __init__(self, frames_dir: str, tracker_type: str = "MOSSE"):
+    def __init__(
+        self, frames_dir: str, annotations_dir: str, tracker_type: str = "MOSSE"
+    ):
         self.frames_dir = frames_dir
         self.tracker_type = tracker_type
         self.frames = getSortedFrames(frames_dir=frames_dir)
-        self.groundtruths = getGroundTruths(frames_dir=frames_dir)
+        self.groundtruths = getGroundTruths(annotations_dir=annotations_dir)
 
         if self.tracker_type == "MOSSE":
             self.tracker = MOSSE()
@@ -115,6 +117,33 @@ class PyTracker:
 
 
 if __name__ == "__main__":
-    tracker = PyTracker(frames_dir="./input/bicycle/", tracker_type="MOSSE")
-    poses = tracker.tracking(video_path="./output/bicycle.mp4")
+    dataset_names = [
+        "bicycle",
+        "bolt",
+        "car",
+        "cup",
+        "david",
+        "diving",
+        "face",
+        "gymnastics",
+        "hand",
+        "iceskater",
+        "juice",
+        "jump",
+        "singer",
+        "sunshade",
+        "torus",
+        "woman",
+    ]
+    dataset_name = dataset_names[10]
+    annotations_path = f"data/{dataset_name}/"
+    frames_path = f"data/{dataset_name}_frames/"
+    video_path = f"output/{dataset_name}.mp4"
+
+    # [开始跟踪算法]
+
+    tracker = PyTracker(
+        frames_dir=frames_path, annotations_dir=annotations_path, tracker_type="MOSSE"
+    )
+    poses = tracker.tracking(video_path=video_path)
     print(f"[debug] 跟踪 {len(poses)} 帧 (包括首帧{poses[0]})")
