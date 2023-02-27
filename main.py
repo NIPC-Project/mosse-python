@@ -119,9 +119,9 @@ class PyTracker:
 
 
 dataset_names = [
-    "bicycle",
+    "bicycle",  # 0 good 320x240 271/30 154,94,18,48
     "bolt",
-    "car",
+    "car",  # 2 good 320x240 374/30 257,163,57,36
     "cup",
     "david",
     "diving",
@@ -130,7 +130,7 @@ dataset_names = [
     "hand",
     "iceskater",
     "juice",
-    "jump",
+    "jump",  # 11 good 640x360 228/30 328,189,53,50
     "singer",
     "sunshade",
     "torus",
@@ -138,7 +138,7 @@ dataset_names = [
 ]
 
 if __name__ == "__main__":
-    dataset_name = dataset_names[15]  # 0-15
+    dataset_name = dataset_names[2]  # 0-15
     annotations_path = f"data/{dataset_name}/"
     frames_path = f"data/{dataset_name}_frames/"
     video_path = f"output/{dataset_name}.mp4"
