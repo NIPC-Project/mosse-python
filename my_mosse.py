@@ -10,13 +10,12 @@ Python re-implementation of "Visual Object Tracking using Adaptive Correlation F
 Dongmen practices at 2020/3/26.
 """
 
-from typing import Tuple
 import numpy as np
 import cv2
 
 
 # 汉宁窗，防止频谱泄露
-def cos_window(sz):
+def cosWindow(size: tuple[int, int]) -> np.ndarray:
     """
     width, height = sz
     j = np.arange(0, width)
@@ -24,18 +23,17 @@ def cos_window(sz):
     J, I = np.meshgrid(j, i)
     cos_window = np.sin(np.pi * J / width) * np.sin(np.pi * I / height)
     """
-
-    cos_window = np.hanning(int(sz[1]))[:, np.newaxis].dot(
-        np.hanning(int(sz[0]))[np.newaxis, :]
+    cos_window = np.hanning(int(size[1]))[:, np.newaxis].dot(
+        np.hanning(int(size[0]))[np.newaxis, :]
     )
     return cos_window
 
 
-def gaussian2d_labels(sz, sigma):
+def gaussianKernel(size: tuple[int, int], sigma: float) -> np.ndarray:
     """
     该函数的作用是生成一个sz大小的的高斯核
     """
-    w, h = sz
+    w, h = size
     xs, ys = np.meshgrid(np.arange(w), np.arange(h))  # 根据w, h的值生成一个网格的x，y坐标
     center_x, center_y = w / 2, h / 2
     dist = ((xs - center_x) ** 2 + (ys - center_y) ** 2) / (sigma**2)
@@ -57,35 +55,46 @@ class BaseCF:
 class MOSSE(BaseCF):
     def __init__(self, interp_factor=0.125, sigma=2.0):
         super(MOSSE).__init__()
-        self.interp_factor = interp_factor  # 学习率
-        self.sigma = sigma  # 高斯变换中的方差
+        self.interp_factor: float = interp_factor  # 学习率
+        self.sigma: sigma = sigma  # 高斯变换中的方差
 
-    # first_frame: np.array
-    # bbox: x y w h
-    def init(self, first_frame: np.ndarray, bbox: Tuple[int]):
+    def init(self, first_frame: np.ndarray, bbox: tuple[int, int, int, int]):
+        # [取出第一帧]
+
+        # RGB图片转换成灰度图片
         if len(first_frame.shape) != 2:
             assert first_frame.shape[2] == 3
-            first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)  # RGB图片转换成灰度图片
-        first_frame = first_frame.astype(np.float32) / 255  # 归一化
-        x, y, w, h = bbox  # 取出第一帧中ground truth的坐标值 x,y为框的左上角坐标，w, h为框的大小
-        self.center = (x + w / 2, y + h / 2)  # 计算ground truth的中心
-        self.w, self.h = w, h  # 获取框的大小
-        w, h = int(round(w)), int(round(h))  # round()四舍五入
-        self.cos_window = cos_window((w, h))  # 定义汉宁窗
-        # 从第一帧中截取出检测的目标部分， _fi.shape = (w,h)
-        self._fi = cv2.getRectSubPix(
+            first_frame = cv2.cvtColor(first_frame, cv2.COLOR_BGR2GRAY)
+        # 归一化
+        first_frame = first_frame.astype(np.float32) / 255
+
+        # [保存一些之后用到的变量]
+
+        # 取出第一帧中ground truth的坐标值 x,y为框的左上角坐标，w, h为框的大小
+        x, y, w, h = bbox
+        # 计算ground truth的中心
+        self.center: tuple[float, float] = (x + w / 2, y + h / 2)
+        # 获取框的大小
+        self.w, self.h = w, h
+        self.crop_size = (w, h)  # 定义裁剪框的大小
+        # 定义汉宁窗
+        self.cos_window = cosWindow(size=(w, h))
+
+        # [使用随机变换的groundtruth进行训练得到初始的核]
+
+        # 从第一帧中截取出检测的目标部分
+        fi_groundtruth = cv2.getRectSubPix(
             image=first_frame, patchSize=(w, h), center=self.center
         )
         # 首先生成一个w * h(检测框大小)的高斯核，然后对该高斯核进行傅里叶变换，初始化G
-        self._G = np.fft.fft2(gaussian2d_labels((w, h), self.sigma))
-        self.crop_size = (w, h)  # 定义裁剪框的大小
-        self.Ai = np.zeros_like(self._G)  # 初始化Ai
-        self.Bi = np.zeros_like(self._G)  # 初始化Bi
-        # 对Fi进行多次刚性形变，增强检测的鲁棒性
-        # 计算出Ai和Bi的初始值
-        for _ in range(8):
-            fi = self.randomWarp(self._fi)  # YXJ: 如果测试场景不发生大小变化、旋转等，不需要做
-            # fi = self._fi
+        self._G = np.fft.fft2(gaussianKernel(size=(w, h), sigma=self.sigma))
+        self.Ai = np.zeros_like(self._G)
+        self.Bi = np.zeros_like(self._G)
+        # 训练初始的核
+        for _ in range(1):
+            # 对fi进行多次刚性形变，增强检测的鲁棒性
+            # fi = self.randomWarp(fi_groundtruth)
+            fi = fi_groundtruth
             Fi = np.fft.fft2(self.preprocessing(fi, self.cos_window))
             self.Ai += self._G * np.conj(Fi)
             self.Bi += Fi * np.conj(Fi)
@@ -109,14 +118,14 @@ class MOSSE(BaseCF):
         # 卷积得到Gi
         Gi = self.Hi * np.fft.fft2(fi)
         # 对频域下的Gi进行逆傅里叶变换得到实际的gi
-        gi = np.real(np.fft.ifft2(Gi))  
+        gi = np.real(np.fft.ifft2(Gi))
         if vis is True:
             self.score = gi
         # 获取gi中最大值的index，这个位置就是第二帧图像中目标所在（算法假设物体不会运动超过上个框）
         position = np.unravel_index(np.argmax(gi, axis=None), gi.shape)
         dy, dx = position[0] - (self.h / 2), position[1] - (self.w / 2)
         x_c, y_c = self.center
-        self.center = (x_c + dx, y_c + dy)  
+        self.center = (x_c + dx, y_c + dy)
 
         # [更新核]
 
