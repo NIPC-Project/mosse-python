@@ -5,6 +5,7 @@ __pycache__
 test_data.7z
 test_data/
 output/
+data/
 
 # test
 playground.py
