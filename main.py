@@ -4,7 +4,9 @@ import csv
 import cv2
 import numpy as np
 
-from my_mosse import MOSSE
+from mosse_asddongmen import MOSSE
+
+# from mosse_yxj import MOSSE
 
 
 # 返回排序后的所有帧的路径
@@ -116,26 +118,27 @@ class PyTracker:
         return poses
 
 
+dataset_names = [
+    "bicycle",
+    "bolt",
+    "car",
+    "cup",
+    "david",
+    "diving",
+    "face",
+    "gymnastics",
+    "hand",
+    "iceskater",
+    "juice",
+    "jump",
+    "singer",
+    "sunshade",
+    "torus",
+    "woman",
+]
+
 if __name__ == "__main__":
-    dataset_names = [
-        "bicycle",
-        "bolt",
-        "car",
-        "cup",
-        "david",
-        "diving",
-        "face",
-        "gymnastics",
-        "hand",
-        "iceskater",
-        "juice",
-        "jump",
-        "singer",
-        "sunshade",
-        "torus",
-        "woman",
-    ]
-    dataset_name = dataset_names[10]
+    dataset_name = dataset_names[15]  # 0-15
     annotations_path = f"data/{dataset_name}/"
     frames_path = f"data/{dataset_name}_frames/"
     video_path = f"output/{dataset_name}.mp4"
