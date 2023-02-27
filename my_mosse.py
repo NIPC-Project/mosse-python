@@ -71,19 +71,20 @@ class MOSSE(BaseCF):
         self.w, self.h = w, h  # 获取框的大小
         w, h = int(round(w)), int(round(h))  # round()四舍五入
         self.cos_window = cos_window((w, h))  # 定义汉宁窗
+        # 从第一帧中截取出检测的目标部分， _fi.shape = (w,h)
         self._fi = cv2.getRectSubPix(
-            first_frame, (w, h), self._center
-        )  # 从第一帧中截取出检测的目标部分， _fi.shape = (w,h)
-        self._G = np.fft.fft2(
-            gaussian2d_labels((w, h), self.sigma)
-        )  # 首先生成一个w * h(检测框大小)的高斯核，然后对该高斯核进行傅里叶变换，初始化G
+            image=first_frame, patchSize=(w, h), center=self._center
+        )
+        # 首先生成一个w * h(检测框大小)的高斯核，然后对该高斯核进行傅里叶变换，初始化G
+        self._G = np.fft.fft2(gaussian2d_labels((w, h), self.sigma))
         self.crop_size = (w, h)  # 定义裁剪框的大小
         self._Ai = np.zeros_like(self._G)  # 初始化Ai
         self._Bi = np.zeros_like(self._G)  # 初始化Bi
         # 对Fi进行多次刚性形变，增强检测的鲁棒性
         # 计算出Ai和Bi的初始值
         for _ in range(8):
-            fi = self._rand_warp(self._fi)
+            fi = self._rand_warp(self._fi)  # YXJ: 如果测试场景不发生大小变化、旋转等，不需要做
+            # fi = self._fi
             Fi = np.fft.fft2(self._preprocessing(fi, self.cos_window))
             self._Ai += self._G * np.conj(Fi)
             self._Bi += Fi * np.conj(Fi)
@@ -105,14 +106,15 @@ class MOSSE(BaseCF):
         curr = np.unravel_index(
             np.argmax(gi, axis=None), gi.shape
         )  # 获取gi中最大值的index，这个位置就是第二帧图像中目标所在
-        dy, dx = curr[0] - (self.h / 2), curr[1] - (self.w / 2)  # 这两个是啥坐标
+        dy, dx = curr[0] - (self.h / 2), curr[1] - (self.w / 2)
         x_c, y_c = self._center
         x_c += dx
         y_c += dy
         self._center = (x_c, y_c)  # 此处得到新框的中心的坐标
+        # 针对当前帧，用新的中心截取一个框
         fi = cv2.getRectSubPix(
             current_frame, (int(round(self.w)), int(round(self.h))), self._center
-        )  # 针对当前帧，用新的中心截取一个框
+        )
         fi = self._preprocessing(fi, self.cos_window)
         Fi = np.fft.fft2(fi)
         self._Ai = (
@@ -123,12 +125,13 @@ class MOSSE(BaseCF):
             self.interp_factor * (Fi * np.conj(Fi))
             + (1 - self.interp_factor) * self._Bi
         )
+        # 返回值为当前框的坐标(x, y, w, h)
         return [
             self._center[0] - self.w / 2,
             self._center[1] - self.h / 2,
             self.w,
             self.h,
-        ]  # 返回值为当前框的坐标(x, y, w, h)
+        ]
 
     def _preprocessing(self, img, cos_window, eps=1e-5):
         """
