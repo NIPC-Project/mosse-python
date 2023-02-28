@@ -91,13 +91,10 @@ class MOSSE(BaseCF):
         self.Ai = np.zeros_like(self._G)
         self.Bi = np.zeros_like(self._G)
         # 训练初始的核
-        for _ in range(8):
-            # 对fi进行多次刚性形变，增强检测的鲁棒性
-            fi = self.randomWarp(fi_groundtruth)
-            # fi = fi_groundtruth
-            Fi = np.fft.fft2(self.preprocessing(fi, self.cos_window))
-            self.Ai += self._G * np.conj(Fi)
-            self.Bi += Fi * np.conj(Fi)
+        fi = fi_groundtruth
+        Fi = np.fft.fft2(self.preprocessing(fi, self.cos_window))
+        self.Ai += self._G * np.conj(Fi)
+        self.Bi += Fi * np.conj(Fi)
         self.Hi = self.Ai / self.Bi
 
     def update(self, current_frame, vis=False) -> tuple[int]:
@@ -168,23 +165,3 @@ class MOSSE(BaseCF):
         img = np.log(img + 1)
         img = (img - np.mean(img)) / (np.std(img) + eps)
         return cos_window * img
-
-    def randomWarp(self, img: np.ndarray) -> np.ndarray:
-        """
-        该函数对第一帧的目标框进行随机重定位，刚性形变，减轻漂移。
-        """
-        h, w = img.shape[:2]
-        C = 0.1
-        ang = np.random.uniform(-C, C)
-        c, s = np.cos(ang), np.sin(ang)
-        W = np.array(
-            [
-                [c + np.random.uniform(-C, C), -s + np.random.uniform(-C, C), 0],
-                [s + np.random.uniform(-C, C), c + np.random.uniform(-C, C), 0],
-            ]
-        )
-        center_warp = np.array([[w / 2], [h / 2]])
-        tmp = np.sum(W[:, :2], axis=1).reshape((2, 1))
-        W[:, 2:] = center_warp - center_warp * tmp
-        warped = cv2.warpAffine(img, W, (w, h), cv2.BORDER_REFLECT)
-        return warped

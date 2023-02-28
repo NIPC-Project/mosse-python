@@ -4,9 +4,9 @@ import csv
 import cv2
 import numpy as np
 
-from mosse_asddongmen import MOSSE
+# from mosse_asddongmen import MOSSE
 
-# from mosse_yxj import MOSSE
+from mosse_yxj import MOSSE
 
 
 # 返回排序后的所有帧的路径
