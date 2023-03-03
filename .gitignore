@@ -2,10 +2,11 @@
 __pycache__
 
 # data
-test_data.7z
-test_data/
 output/
-data/
+data/*
+!data/bicycle*/
+!data/car*/
+!data/jump*/
 
 # test
 playground.py
