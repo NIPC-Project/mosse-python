@@ -138,15 +138,18 @@ dataset_names = [
 ]
 
 if __name__ == "__main__":
-    dataset_name = dataset_names[2]  # 0-15
-    annotations_path = f"data/{dataset_name}/"
-    frames_path = f"data/{dataset_name}_frames/"
-    video_path = f"output/{dataset_name}.mp4"
+    for i in [0, 2, 11]:
+        dataset_name = dataset_names[i]  # 0-15
+        annotations_path = f"data/{dataset_name}/"
+        frames_path = f"data/{dataset_name}_frames/"
+        video_path = f"output/{dataset_name}.mp4"
 
-    # [开始跟踪算法]
+        # [开始跟踪算法]
 
-    tracker = PyTracker(
-        frames_dir=frames_path, annotations_dir=annotations_path, tracker_type="MOSSE"
-    )
-    poses = tracker.tracking(video_path=video_path)
-    print(f"[debug] 跟踪 {len(poses)} 帧 (包括首帧{poses[0]})")
+        tracker = PyTracker(
+            frames_dir=frames_path,
+            annotations_dir=annotations_path,
+            tracker_type="MOSSE",
+        )
+        poses = tracker.tracking(video_path=video_path)
+        print(f"[debug] 跟踪 {len(poses)} 帧 (包括首帧{poses[0]})")
