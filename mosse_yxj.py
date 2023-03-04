@@ -20,7 +20,7 @@ class MOSSE(BaseCF):
         self.sigma: sigma = sigma  # 高斯变换中的方差
 
     def init(self, first_frame: np.ndarray, bbox: tuple[int, int, int, int]):
-        first_frame = self._convertImageToFloat(image=first_frame)
+        first_frame = self._convertImageToFloat(first_frame)
         self.x, self.y, self.w, self.h = bbox
 
         self.window = self._getHanningWindow(size=(self.w, self.h))
@@ -28,21 +28,19 @@ class MOSSE(BaseCF):
             self._getGaussKernel(size=(self.w, self.h), sigma=self.sigma)
         )
 
-        f = self._getSubImage(first_frame, (self.x, self.y, self.w, self.h))
+        f = self._getSubImage(first_frame, bbox=(self.x, self.y, self.w, self.h))
         f = self._normalize(f)
         f = self.window * f
-
         F = np.fft.fft2(f)
 
         self.A = self.Kernel * np.conj(F)
         self.B = F * np.conj(F)
         self.H = self.A / self.B
 
-    def update(self, current_frame, vis=False) -> tuple[int]:
+    def update(self, current_frame, vis=False) -> tuple[int, int, int, int]:
         current_frame = self._convertImageToFloat(current_frame)
-        f = self._getSubImage(
-            image=current_frame, bbox=(self.x, self.y, self.w, self.h)
-        )
+
+        f = self._getSubImage(current_frame, bbox=(self.x, self.y, self.w, self.h))
         f = self._normalize(f)
         f = self.window * f
         F = np.fft.fft2(f)
@@ -55,11 +53,7 @@ class MOSSE(BaseCF):
         dy, dx = position[0] - (self.h / 2), position[1] - (self.w / 2)
         self.x, self.y = (self.x + dx, self.y + dy)
 
-        # [更新核]
-
-        f = self._getSubImage(
-            image=current_frame, bbox=(self.x, self.y, self.w, self.h)
-        )
+        f = self._getSubImage(current_frame, bbox=(self.x, self.y, self.w, self.h))
         f = self._normalize(f)
         f = self.window * f
         F = np.fft.fft2(f)
@@ -68,15 +62,7 @@ class MOSSE(BaseCF):
         self.B = self.ita * (F * np.conj(F)) + (1 - self.ita) * self.B
         self.H = self.A / self.B
 
-        # [返回]
-
-        # 返回新一帧的框 (x, y, w, h)
-        return (
-            self.x,
-            self.y,
-            self.w,
-            self.h,
-        )
+        return (self.x, self.y, self.w, self.h)
 
     def _getHanningWindow(self, size: tuple[int, int]) -> np.ndarray:
         """
