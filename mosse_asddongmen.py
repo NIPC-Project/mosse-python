@@ -76,7 +76,6 @@ class MOSSE(BaseCF):
         self.center: tuple[float, float] = (x + w / 2, y + h / 2)
         # 获取框的大小
         self.w, self.h = w, h
-        self.crop_size = (w, h)  # 定义裁剪框的大小
         # 定义汉宁窗
         self.cos_window = cosWindow(size=(w, h))
 

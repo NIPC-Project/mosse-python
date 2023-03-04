@@ -69,7 +69,6 @@ class MOSSE(BaseCF):
     def init(self, first_frame: np.ndarray, bbox: tuple[int, int, int, int]):
         first_frame = convertImageToFloat(image=first_frame)
         self.x, self.y, self.w, self.h = bbox
-        self.crop_size = (self.w, self.h)  # 生成视频需要用到
 
         self.window = cosWindow(size=(self.w, self.h))
         self.Kernel = np.fft.fft2(

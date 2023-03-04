@@ -73,7 +73,7 @@ class PyTracker:
                 # apce = APCE(score)
                 # psr = PSR(score)
                 F_max = np.max(score)
-                size = self.tracker.crop_size
+                size = self.tracker.w, self.tracker.h
                 score = cv2.resize(score, size)
                 score -= score.min()
                 score = score / score.max()
