@@ -36,9 +36,12 @@ def convertImageToFloat(image: np.ndarray) -> np.ndarray:
     return image
 
 
-def normalize(img: np.ndarray, eps=1e-5) -> np.ndarray:
-    img = (img - np.mean(img)) / (np.std(img) + eps)
-    return img
+def normalize(image: np.ndarray, eps=1e-5) -> np.ndarray:
+    """
+    使得图像数据均值为 0.0  方差为 1.0
+    """
+    image = (image - np.mean(image)) / (np.std(image) + eps)
+    return image
 
 
 def getSubImage(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
@@ -68,54 +71,51 @@ class MOSSE(BaseCF):
         self.x, self.y, self.w, self.h = bbox
         self.crop_size = (self.w, self.h)  # 生成视频需要用到
 
-        self.g = gaussianKernel(size=(self.w, self.h), sigma=self.sigma)
         self.window = cosWindow(size=(self.w, self.h))
+        self.Kernel = np.fft.fft2(
+            gaussianKernel(size=(self.w, self.h), sigma=self.sigma)
+        )
 
-        # 训练初始的核
         f = getSubImage(first_frame, (self.x, self.y, self.w, self.h))
+        f = normalize(f)
         f = self.window * f
-        Fi = np.fft.fft2(normalize(f))
-        self.G = np.fft.fft2(self.g)
-        self.Ai = self.G * np.conj(Fi)
-        self.Bi = Fi * np.conj(Fi)
-        self.Hi = self.Ai / self.Bi
+
+        F = np.fft.fft2(f)
+
+        self.A = self.Kernel * np.conj(F)
+        self.B = F * np.conj(F)
+        self.H = self.A / self.B
 
     def update(self, current_frame, vis=False) -> tuple[int]:
         current_frame = convertImageToFloat(current_frame)
+        f = getSubImage(image=current_frame, bbox=(self.x, self.y, self.w, self.h))
+        f = normalize(f)
+        f = self.window * f
+        F = np.fft.fft2(f)
 
-        # [寻找新一帧中的框]
-
-        # 针对当前帧，用前一个目标框的中心截取一个框
-        fi = getSubImage(image=current_frame, bbox=(self.x, self.y, self.w, self.h))
-        fi = normalize(fi)
-        fi = self.window * fi
-        # 卷积得到Gi
-        Gi = self.Hi * np.fft.fft2(fi)
-        # 对频域下的Gi进行逆傅里叶变换得到实际的gi
-        gi = np.real(np.fft.ifft2(Gi))
+        G = self.H * F
+        g = np.real(np.fft.ifft2(G))
         if vis is True:
-            self.score = gi
-        # 获取gi中最大值的index，这个位置就是第二帧图像中目标所在（算法假设物体不会运动超过上个框）
-        position = np.unravel_index(np.argmax(gi, axis=None), gi.shape)
+            self.score = g
+        position = np.unravel_index(np.argmax(g, axis=None), g.shape)
         dy, dx = position[0] - (self.h / 2), position[1] - (self.w / 2)
         self.x, self.y = (self.x + dx, self.y + dy)
 
         # [更新核]
 
-        # 用新的框截出物体
-        fi = getSubImage(image=current_frame, bbox=(self.x, self.y, self.w, self.h))
-        fi = normalize(fi)
-        fi = self.window * fi
-        Fi = np.fft.fft2(fi)
-        # 使用学习学习率更新 Hi
-        self.Ai = (
-            self.interp_factor * (self.G * np.conj(Fi))
-            + (1 - self.interp_factor) * self.Ai
+        f = getSubImage(image=current_frame, bbox=(self.x, self.y, self.w, self.h))
+        f = normalize(f)
+        f = self.window * f
+        F = np.fft.fft2(f)
+
+        self.A = (
+            self.interp_factor * (self.Kernel * np.conj(F))
+            + (1 - self.interp_factor) * self.A
         )
-        self.Bi = (
-            self.interp_factor * (Fi * np.conj(Fi)) + (1 - self.interp_factor) * self.Bi
+        self.B = (
+            self.interp_factor * (F * np.conj(F)) + (1 - self.interp_factor) * self.B
         )
-        self.Hi = self.Ai / self.Bi
+        self.H = self.A / self.B
 
         # [返回]
 
