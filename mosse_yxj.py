@@ -36,9 +36,9 @@ def convertImageToFloat(image: np.ndarray) -> np.ndarray:
     return image
 
 
-def preprocessing(img: np.ndarray, cos_window: np.ndarray, eps=1e-5) -> np.ndarray:
+def normalize(img: np.ndarray, eps=1e-5) -> np.ndarray:
     img = (img - np.mean(img)) / (np.std(img) + eps)
-    return cos_window * img
+    return img
 
 
 def getSubImage(image: np.ndarray, bbox: tuple[int, int, int, int]) -> np.ndarray:
@@ -65,29 +65,19 @@ class MOSSE(BaseCF):
 
     def init(self, first_frame: np.ndarray, bbox: tuple[int, int, int, int]):
         first_frame = convertImageToFloat(image=first_frame)
-
-        # [保存一些之后用到的变量]
-
-        # 取出第一帧中ground truth的坐标值 x,y为框的左上角坐标，w, h为框的大小
         self.x, self.y, self.w, self.h = bbox
-        # 获取框的大小
-        self.crop_size = (self.w, self.h)  # 定义裁剪框的大小
-        # 定义汉宁窗
-        self.cos_window = cosWindow(size=(self.w, self.h))
+        self.crop_size = (self.w, self.h)  # 生成视频需要用到
 
-        # [使用随机变换的groundtruth进行训练得到初始的核]
+        self.g = gaussianKernel(size=(self.w, self.h), sigma=self.sigma)
+        self.window = cosWindow(size=(self.w, self.h))
 
-        # 从第一帧中截取出检测的目标部分
-        fi_groundtruth = getSubImage(first_frame, (self.x, self.y, self.w, self.h))
-        # 首先生成一个w * h(检测框大小)的高斯核，然后对该高斯核进行傅里叶变换，初始化G
-        self._G = np.fft.fft2(gaussianKernel(size=(self.w, self.h), sigma=self.sigma))
-        self.Ai = np.zeros_like(self._G)
-        self.Bi = np.zeros_like(self._G)
         # 训练初始的核
-        fi = fi_groundtruth
-        Fi = np.fft.fft2(preprocessing(fi, self.cos_window))
-        self.Ai += self._G * np.conj(Fi)
-        self.Bi += Fi * np.conj(Fi)
+        f = getSubImage(first_frame, (self.x, self.y, self.w, self.h))
+        f = self.window * f
+        Fi = np.fft.fft2(normalize(f))
+        self.G = np.fft.fft2(self.g)
+        self.Ai = self.G * np.conj(Fi)
+        self.Bi = Fi * np.conj(Fi)
         self.Hi = self.Ai / self.Bi
 
     def update(self, current_frame, vis=False) -> tuple[int]:
@@ -97,7 +87,8 @@ class MOSSE(BaseCF):
 
         # 针对当前帧，用前一个目标框的中心截取一个框
         fi = getSubImage(image=current_frame, bbox=(self.x, self.y, self.w, self.h))
-        fi = preprocessing(fi, self.cos_window)
+        fi = normalize(fi)
+        fi = self.window * fi
         # 卷积得到Gi
         Gi = self.Hi * np.fft.fft2(fi)
         # 对频域下的Gi进行逆傅里叶变换得到实际的gi
@@ -113,11 +104,12 @@ class MOSSE(BaseCF):
 
         # 用新的框截出物体
         fi = getSubImage(image=current_frame, bbox=(self.x, self.y, self.w, self.h))
-        fi = preprocessing(fi, self.cos_window)
+        fi = normalize(fi)
+        fi = self.window * fi
         Fi = np.fft.fft2(fi)
         # 使用学习学习率更新 Hi
         self.Ai = (
-            self.interp_factor * (self._G * np.conj(Fi))
+            self.interp_factor * (self.G * np.conj(Fi))
             + (1 - self.interp_factor) * self.Ai
         )
         self.Bi = (
