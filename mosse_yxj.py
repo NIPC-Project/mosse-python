@@ -68,8 +68,8 @@ class MOSSE(BaseCF):
         """
         汉宁窗，防止频谱泄露
         """
-        cos_window = np.hanning(int(size[1]))[:, np.newaxis].dot(
-            np.hanning(int(size[0]))[np.newaxis, :]
+        cos_window = np.hanning(size[1])[:, np.newaxis].dot(
+            np.hanning(size[0])[np.newaxis, :]
         )
         return cos_window
 
