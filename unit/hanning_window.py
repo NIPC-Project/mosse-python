@@ -4,7 +4,7 @@ w = 5
 h = 7
 
 result_np = np.hanning(h)[:, np.newaxis].dot(np.hanning(w)[np.newaxis, :])
-result_yxj = np.zeros_like(result_np)
+result_yxj = np.zeros((h, w))
 
 hanning_w = np.zeros(w)
 for i in range(w):
