@@ -1,3 +1,15 @@
+"""
+Python re-implementation of "Visual Object Tracking using Adaptive Correlation Filters"
+@inproceedings{Bolme2010Visual,
+  title={Visual object tracking using adaptive correlation filters},
+  author={Bolme, David S. and Beveridge, J. Ross and Draper, Bruce A. and Lui, Yui Man},
+  booktitle={Computer Vision & Pattern Recognition},
+  year={2010},
+}
+
+Yang Xijie practices at 2023/3.
+"""
+
 import numpy as np
 import cv2
 
