@@ -50,7 +50,7 @@ class MOSSE(BaseCF):
         if vis is True:
             self.score = g
         position = np.unravel_index(np.argmax(g, axis=None), g.shape)
-        dy, dx = position[0] - (self.h / 2), position[1] - (self.w / 2)
+        dy, dx = position[0] - ((self.h - 1) / 2), position[1] - ((self.w - 1) / 2)
         self.x, self.y = (self.x + dx, self.y + dy)
 
         f = self._getSubImage(current_frame, bbox=(self.x, self.y, self.w, self.h))
@@ -79,7 +79,7 @@ class MOSSE(BaseCF):
         """
         w, h = size
         xs, ys = np.meshgrid(np.arange(w), np.arange(h))  # 根据w, h的值生成一个网格的x，y坐标
-        center_x, center_y = w / 2, h / 2
+        center_x, center_y = (w - 1) / 2, (h - 1) / 2
         dist = ((xs - center_x) ** 2 + (ys - center_y) ** 2) / (sigma**2)
         labels = np.exp(-0.5 * dist)
         return labels
