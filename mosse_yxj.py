@@ -104,7 +104,7 @@ class MOSSE(BaseCF):
             assert image.shape[2] == 3
             image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         # 归一化
-        image = image.astype(np.float32) / 255
+        image = image.astype(np.float32) / 256
         return image
 
     def _normalize(self, image: np.ndarray, eps=1e-5) -> np.ndarray:
