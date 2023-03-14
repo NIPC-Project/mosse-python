@@ -48,6 +48,9 @@ class MOSSE(BaseCF):
         self.A = self.Kernel * np.conj(F)
         self.B = F * np.conj(F)
         self.H = self.A / self.B
+        # print(
+        #     f"[debug]\nA ({self.A.min()}, {self.A.max()})\nB ({self.B.min()}, {self.B.max()}\nH ({self.H.min()}, {self.H.max()})"
+        # )
 
     def update(self, current_frame, vis=False) -> tuple[int, int, int, int]:
         current_frame = self._convertImageToFloat(current_frame)
@@ -73,6 +76,9 @@ class MOSSE(BaseCF):
         self.A = self.ita * (self.Kernel * np.conj(F)) + (1 - self.ita) * self.A
         self.B = self.ita * (F * np.conj(F)) + (1 - self.ita) * self.B
         self.H = self.A / self.B
+        # print(
+        #     f"[debug]\nA ({self.A.min()}, {self.A.max()})\nB ({self.B.min()}, {self.B.max()}\nH ({self.H.min()}, {self.H.max()})"
+        # )
 
         return (self.x, self.y, self.w, self.h)
 

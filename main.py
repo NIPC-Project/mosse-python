@@ -138,7 +138,8 @@ dataset_names = [
 ]
 
 if __name__ == "__main__":
-    for i in [2, 0, 11]:
+    # for i in [2, 0, 11]:
+    for i in [2]:
         dataset_name = dataset_names[i]  # 0-15
         annotations_path = f"data/{dataset_name}/"
         frames_path = f"data/{dataset_name}_frames/"

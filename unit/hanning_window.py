@@ -1,7 +1,7 @@
 import numpy as np
 
-w = 5
-h = 7
+w = 57
+h = 36
 
 result_np = np.hanning(h)[:, np.newaxis].dot(np.hanning(w)[np.newaxis, :])
 result_yxj = np.zeros((h, w))
@@ -17,5 +17,7 @@ for r in range(h):
     for c in range(w):
         result_yxj[r][c] = hanning_h[r] * hanning_w[c]
 
-print(result_np)
-print(result_yxj)
+# print(result_np)
+# print(result_yxj)
+# print(result_np - result_yxj)
+print(hanning_w)
