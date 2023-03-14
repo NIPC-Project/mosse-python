@@ -111,7 +111,11 @@ class MOSSE(BaseCF):
         """
         使得图像数据均值为 0.0  方差为 1.0
         """
-        image = (image - np.mean(image)) / (np.std(image) + eps)
+        # eps 要结合定点小数的可表示范围来确定
+        # 当画面全白或者全黑的时候  不能让处理之后的 image 太大
+        # image = (image - np.mean(image)) / (np.std(image) + eps)
+        # 硬件实现中  直接移除这个除法  只让均值为 0  方差不管了
+        image = image - np.mean(image)
         return image
 
     def _getSubImage(
