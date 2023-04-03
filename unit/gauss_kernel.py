@@ -1,7 +1,7 @@
 import numpy as np
 
-w = 57
-h = 36
+w = 64
+h = 32
 
 sigma = 2.0
 
@@ -30,5 +30,5 @@ def _getGaussKernel(size: tuple[int, int], sigma: float) -> np.ndarray:
     return labels
 
 
-kernel = _getGaussKernel(size=(57, 36), sigma=2.0)
+kernel = _getGaussKernel(size=(64, 32), sigma=2.0)
 print(kernel)

@@ -8,8 +8,8 @@ np.set_printoptions(
     linewidth=1000,
 )
 
-w = 57
-h = 36
+w = 64
+h = 32
 
 sigma = 2.0
 
