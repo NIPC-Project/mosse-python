@@ -119,9 +119,13 @@ class PyTracker:
 
 
 dataset_names = [
-    "bicycle",  # 0 good 320x240 271/30 154,94,18,48
+    # 0 good 320x240 271/30 154,94,18,48
+    "bicycle",
     "bolt",
-    "car",  # 2 good 320x240 374/30 257,163,57,36
+    # 2 good 320x240 374/30 257,163,57,36
+    # my: 32x64 [162,196)x[253,317)
+    #     253.0,164.0,64.0,32.0
+    "car",
     "cup",
     "david",
     "diving",
@@ -130,7 +134,8 @@ dataset_names = [
     "hand",
     "iceskater",
     "juice",
-    "jump",  # 11 good 640x360 228/30 328,189,53,50
+    # 11 good 640x360 228/30 328,189,53,50
+    "jump",
     "singer",
     "sunshade",
     "torus",
