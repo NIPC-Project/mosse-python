@@ -3,7 +3,7 @@ import numpy as np
 np.set_printoptions(
     # precision=2,
     suppress=True,
-    formatter={"float": "{: 0.6f}".format},
+    formatter={"float": "{: .4f}".format},
     edgeitems=57,
     linewidth=1000,
 )
@@ -48,9 +48,5 @@ ip_dout_im = (
 )
 print(ip_dout_re)
 print(ip_dout_im)
-
-print("----")
-
-w = ip_dout_re + ip_dout_im * 1j
-v = np.fft.ifft(w)
-print(np.real(v))
+ip_dout = np.fft.ifft(ip_dout_re + ip_dout_im * 1j)
+print(np.real(ip_dout))
