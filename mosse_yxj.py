@@ -73,6 +73,8 @@ class MOSSE(BaseCF):
         f = self.window * f
         F = np.fft.fft2(f)
 
+        print(np.min(self.Kernel)); exit(0)
+
         self.A = self.ita * (self.Kernel * np.conj(F)) + (1 - self.ita) * self.A
         self.B = self.ita * (F * np.conj(F)) + (1 - self.ita) * self.B
         self.H = self.A / self.B
@@ -121,7 +123,7 @@ class MOSSE(BaseCF):
         # 当画面全白或者全黑的时候  不能让处理之后的 image 太大
         # image = (image - np.mean(image)) / (np.std(image) + eps)
         # 硬件实现中  直接移除这个除法  只让均值为 0  方差不管了
-        image = image - np.mean(image)
+        image = image - 0.5
         return image
 
     def _getSubImage(
