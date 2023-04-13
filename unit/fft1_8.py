@@ -8,11 +8,11 @@ np.set_printoptions(
     linewidth=1000,
 )
 
-x = np.array([0.0, 0, 1, 1, 1, 1, 0, 0])
+x = np.array([0 / 8, 1 / 8, 2 / 8, 3 / 8, 4 / 8, 5 / 8, 6 / 8, 7 / 8], dtype=np.float64)
 y = np.fft.fft(x)
 print(x)
 print(y)
-print(np.abs(y))
+# print(np.abs(y))
 
-z = np.fft.ifft(y)
-print(np.real(z))
+# z = np.fft.ifft(y)
+# print(np.real(z))
