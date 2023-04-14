@@ -73,14 +73,9 @@ class MOSSE(BaseCF):
         f = self.window * f
         F = np.fft.fft2(f)
 
-        print(np.min(self.Kernel)); exit(0)
-
         self.A = self.ita * (self.Kernel * np.conj(F)) + (1 - self.ita) * self.A
         self.B = self.ita * (F * np.conj(F)) + (1 - self.ita) * self.B
         self.H = self.A / self.B
-        # print(
-        #     f"[debug]\nA ({self.A.min()}, {self.A.max()})\nB ({self.B.min()}, {self.B.max()}\nH ({self.H.min()}, {self.H.max()})"
-        # )
 
         return (self.x, self.y, self.w, self.h)
 
