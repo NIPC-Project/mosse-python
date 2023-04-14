@@ -8,7 +8,7 @@ np.set_printoptions(
     linewidth=1000,
 )
 
-x = np.array([5 / 8, 0 / 8, 2 / 8, 4 / 8, 7 / 8, 2 / 8, 3 / 8, 1 / 8], dtype=np.float64)
+x = np.array([5 / 8, 0 / 8, 2 / 8, 4 / 8, 7 / 8, 2 / 8, 3 / 8, 1 / 8] * 4, dtype=np.float64)
 y = np.fft.fft(x)
 print(x)
 print(y)
