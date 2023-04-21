@@ -19,18 +19,18 @@ def GaussKernel(size: tuple[int, int], sigma: float) -> np.ndarray:
     return labels
 
 
+kernel = np.fft.fft2(GaussKernel(size=(32, 32), sigma=2.0))
+
 with open("kernel.coe", "w") as f:
     f.write("memory_initialization_radix = 16;\n")
     f.write("memory_initialization_vector = \n")
     for x in range(32):
         for y in range(32):
-            kernel = np.fft.fft2(GaussKernel(size=(32, 32), sigma=2.0))
-
-            re_bytes = float2bytes(
-                value=np.real(kernel[y][x]), fixed_num=16, int_num=32
-            )
             im_bytes = float2bytes(
                 value=np.imag(kernel[y][x]), fixed_num=16, int_num=32
+            )
+            re_bytes = float2bytes(
+                value=np.real(kernel[y][x]), fixed_num=16, int_num=32
             )
             f.write(
                 f"{im_bytes[3]:02X}{im_bytes[2]:02X}{im_bytes[1]:02X}{im_bytes[0]:02X}"

@@ -9,4 +9,4 @@ data/*
 !data/jump*/
 
 # test
-playground.py
+playground*
