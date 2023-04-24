@@ -49,6 +49,6 @@ h = a / b
 
 start = 0
 end = 32
-h_ans = h.reshape(1024).tolist()[start:end]
+h_ans = h.reshape(1024).tolist()
 for i in range(start,end):
     print(f"{h_ans[i]:.3f}")
