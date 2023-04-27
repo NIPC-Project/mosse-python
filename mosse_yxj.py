@@ -60,8 +60,22 @@ class MOSSE(BaseCF):
         f = self.window * f
         F = np.fft.fft2(f)
 
-        G = self.H * F
+        G = F * self.H
         g = np.real(np.fft.ifft2(G))
+
+        # debug start
+        np.set_printoptions(
+            # precision=2,
+            suppress=True,
+            formatter={"float": "{: .3f}".format},
+            edgeitems=10,
+            linewidth=1000,
+        )
+        print(g)
+        print(np.max(g))
+        exit(0)
+        # debug end
+
         if vis is True:
             self.score = g
         position = np.unravel_index(np.argmax(g, axis=None), g.shape)
