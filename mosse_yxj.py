@@ -139,4 +139,5 @@ class MOSSE(BaseCF):
         self, image: np.ndarray, bbox: tuple[int, int, int, int]
     ) -> np.ndarray:
         x, y, w, h = bbox
-        return cv2.getRectSubPix(image, (w, h), (x + w / 2, y + h / 2))
+        x, y, w, h = int(x), int(y), int(w), int(h)
+        return image[y : (y + h), x : (x + w)]
