@@ -63,18 +63,18 @@ class MOSSE(BaseCF):
         G = F * self.H
         g = np.real(np.fft.ifft2(G))
 
-        # debug start
-        np.set_printoptions(
-            # precision=2,
-            suppress=True,
-            formatter={"float": "{: .3f}".format},
-            edgeitems=10,
-            linewidth=1000,
-        )
-        print(g)
-        print(np.max(g))
-        exit(0)
-        # debug end
+        # # debug start
+        # np.set_printoptions(
+        #     # precision=2,
+        #     suppress=True,
+        #     formatter={"float": "{: .3f}".format},
+        #     edgeitems=10,
+        #     linewidth=1000,
+        # )
+        # print(g)
+        # print(np.max(g))
+        # exit(0)
+        # # debug end
 
         if vis is True:
             self.score = g
