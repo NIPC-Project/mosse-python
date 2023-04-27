@@ -1,5 +1,8 @@
 import numpy as np
 
+start = 0
+end = 34
+
 np.set_printoptions(
     # precision=2,
     suppress=True,
@@ -59,18 +62,13 @@ test_data_f_mul_window = []
 for i in range(32 * 32):
     a = test_data_crop_minus_half[i] * window[i]
     test_data_f_mul_window.append(a)
-test_data_f_fft = np.fft.fft2(np.array(test_data_f_mul_window).reshape(32, 32))
+F = np.fft.fft2(np.array(test_data_f_mul_window).reshape(32, 32))
+print(F.reshape(1024)[start:end])
 
-start = 0
-end = 34
-h_ans = test_data_f_fft.reshape(1024)[start:end]
-print(h_ans)
+A = kernel * np.conj(F)
+B = F * np.conj(F)
+H = A / B
+print(H.reshape(1024)[start:end])
 
-a = kernel * np.conj(test_data_f_fft)
-b = test_data_f_fft * np.conj(test_data_f_fft)
-h = a / b
-
-start = 0
-end = 34
-h_ans = h.reshape(1024)[start:end]
-print(h_ans)
+G = F * H
+print(G.reshape(1024)[start:end])
