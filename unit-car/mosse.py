@@ -40,6 +40,11 @@ yc = int(y + h / 2)  # 181
 
 with open("1.bin", "rb") as f:
     test_data = f.read()
+    # print(test_data[53069])  # 86
+    # print(test_data[53070])  # 102
+    # print(test_data[53071])  # 135
+    # print(test_data[53390])  # 107
+    # print(test_data[53391])  # 132
 
 test_data_crop = []
 for i in range(32 * 32):
@@ -56,12 +61,16 @@ for i in range(32 * 32):
     test_data_f_mul_window.append(a)
 test_data_f_fft = np.fft.fft2(np.array(test_data_f_mul_window).reshape(32, 32))
 
+start = 0
+end = 34
+h_ans = test_data_f_fft.reshape(1024)[start:end]
+print(h_ans)
 
 a = kernel * np.conj(test_data_f_fft)
 b = test_data_f_fft * np.conj(test_data_f_fft)
 h = a / b
 
 start = 0
-end = 32
+end = 34
 h_ans = h.reshape(1024)[start:end]
 print(h_ans)
