@@ -140,4 +140,6 @@ class MOSSE(BaseCF):
     ) -> np.ndarray:
         x, y, w, h = bbox
         x, y, w, h = int(x), int(y), int(w), int(h)
-        return image[y : (y + h), x : (x + w)]
+        result = image[y : (y + h), x : (x + w)]
+        assert result.shape == (h, w)
+        return result

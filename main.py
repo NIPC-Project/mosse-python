@@ -1,5 +1,6 @@
 import os
 import csv
+import traceback
 
 import cv2
 import numpy as np
@@ -119,7 +120,6 @@ class PyTracker:
 
 
 dataset_names = [
-    # 0 good 320x240 271/30 154,94,18,48
     "bicycle",
     "bolt",
     # 2 good 320x240 374/30 257,163,57,36
@@ -144,9 +144,7 @@ dataset_names = [
 ]
 
 if __name__ == "__main__":
-    # for i in [2, 0, 11]:
-    for i in [2]:
-        dataset_name = dataset_names[i]  # 0-15
+    for dataset_name in ["car", "cup", "jump"]:
         annotations_path = f"data/{dataset_name}/"
         frames_path = f"data/{dataset_name}_frames/"
         video_path = f"output/{dataset_name}.mp4"
@@ -158,5 +156,8 @@ if __name__ == "__main__":
             annotations_dir=annotations_path,
             tracker_type="MOSSE",
         )
-        poses = tracker.tracking(video_path=video_path)
-        print(f"[debug] 跟踪 {len(poses)} 帧 (包括首帧{poses[0]})")
+        try:
+            poses = tracker.tracking(video_path=video_path)
+            print(f"[debug] 跟踪 {len(poses)} 帧 (包括首帧{poses[0]})")
+        except:
+            print(traceback.format_exc())
